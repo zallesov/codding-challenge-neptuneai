@@ -2,15 +2,19 @@ import { Symbol, SYMBOLS } from "./Symbol.ts";
 import { BatchRequest } from "./BatchRequest.ts";
 import { Memory } from "./Memory.ts";
 
+// Regexp to match the path. Good enough for such small app.
 const STATS_PATH = /^\/stats\/([a-zA-Z]+)\/(\d+)$/;
 const ADD_BATCH_PATH = /^\/add_batch\/([a-zA-Z]+)$/;
+
 const DEFAULT_K = 8; // 10^k is the max stats request length
 
+// In memory storage for the stats.
+// Allocates storage for each supported symbol
 const memory = new Map<Symbol, Memory>(
   SYMBOLS.map(symbol => [symbol, new Memory(DEFAULT_K)])
 );
 
-
+// handler for the stats request
 function handleStats(req: Request) {
   const url = new URL(req.url);
   const match = url.pathname.match(STATS_PATH);
@@ -35,12 +39,12 @@ function handleStats(req: Request) {
 
   const stats = memory.get(parsedSymbol.data)?.getStats(k);
 
-  console.log("Stats", stats);
+  // console.log("Stats", stats);
 
-  return new Response(JSON.stringify(stats), { status: 200, headers: { "Content-Type": "application/json" } });
+  return new Response(stats?.toJSON(), { status: 200, headers: { "Content-Type": "application/json" } });
 }
 
-
+// handler for the add batch request
 async function handleAddBatch(req: Request) {
   const url = new URL(req.url);
   const match = url.pathname.match(ADD_BATCH_PATH);
@@ -71,7 +75,7 @@ async function handleAddBatch(req: Request) {
   return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "Content-Type": "application/json" } });
 }
 
-
+// Entry point 
 Deno.serve(async (req: Request) => {
   const url = new URL(req.url);
   const urlPath = url.pathname;

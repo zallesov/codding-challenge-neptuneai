@@ -51,7 +51,7 @@ Server will return a meaningful error message if something is wrong.
 deno test
 ```
 
-# Integration tests
+# Manula test
 
 To make a request for a batch 
 ```bash
@@ -65,37 +65,18 @@ deno run --allow-net ./integration/test_stats.ts BTCUSDT 2
 
 # Algorithm
 
-Memory class maintains the list of batches for a particular symbol. 
-Each batch contains the values from each API call and the stats calculated for that batch.
+I'm maintaining a sliding window with calculated stats for each of the k `1<k<8`. Values for each k are also stored. For k=1 last 10 values, and for k=8 last 10^8 values. 
+This could be optimized further to only use up 10^8 values. 
+Every new value is added to the stats for this window for every k. The complexity of inserting a batch of m elements is O(m*k).
+When the window reaches its limit (10^k) the oldest is removed from it and the new one is added. The stats are recalculated first for the removed value and then for the new value. 
+Recalculation is done with O(1) complexity. It is not looping over the values.
 
-## Add values
-Stats are calculated for each new batch and added to the memory.
-When the total count of values in all batches reaches the maxSize=10^k (k=8)
-- Remove the oldest batch until the total summed count of values is less than maxSize
-- Split the oldest batch into two. One part replaces the oldest batch to keep the total count of values equal to maxSize.
-  The second part is discarded.
+Except for min and max. In case min or max value is removed there is no way to find a new min/max value in O(1) time AND O(1) space complexity. 
+A separate sorted list will have to be maintained to complete it in O(1)
 
-## Get stats
-It aggregates the stats from the batches until it reaches the batch that exceeds the window size.
-This batch is then split into two. One part is used for the calculation of stats and the other part is discarded.
 
-## Complexity
-Calculating stats will always be O(n). n is the number of values in the batch.
-Insertion of a batch is O(1) best case. Worst case O(m) where m is the number of batches. In case of batch size of 1 the complexity is O(10^k). This implementation will not perform well with in such extreme cases.
 
-Getting stats is O(m). Where m is the number of batches stored. Also in case of batch size of 1 the complexity is O(10^k). 
 
-This implementation will perform well batch size >> 10.
-
-## Further optimization
-Depending on insert/get request ratio or ratio between insert average batches size vs requested stats size the algorithm can be further improved.
-
-For example
-Splitting and recalculating the oldest batch in the insertion time is not really necessary. Removing those that exeed the maxSize is enough. But this will move the calculation of stats for the part of the last batch to the get stats endpoint.
-
-Stats for each values of `k` can be precalculated and cached. 
-
-Batching can be done in fixed size with exception of the the far right and far left batches. Those can be of arbitrary size. This will eliminate the edges case O(n) complexity adn will make the overall complexity O(maxSize/batchSize) for every insertion.
 
 
 
