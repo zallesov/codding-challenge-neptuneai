@@ -12,19 +12,19 @@ Deno.test("Should Initialize", () => {
 });
 Deno.test("addValue - Should add value one by one and calculate stats", () => {
     const stats = new Stats(10);
-    stats.addValue(5);
+    stats._addValue(5);
     assertStrictEquals(stats.count, 1);
     assertEquals(stats.avg, 5);
     assertEquals(stats.variance, 0);
     assertEquals(stats.last, 5);
 
-    stats.addValue(10);
+    stats._addValue(10);
     assertStrictEquals(stats.count, 2);
     assertEquals(stats.avg, 7.5);
     assertEquals(stats.variance, 6.25);
     assertEquals(stats.last, 10);
 
-    stats.addValue(15);
+    stats._addValue(15);
     assertStrictEquals(stats.count, 3);
     assertEquals(stats.avg, 10);
     assertEquals(stats.variance, 16.666666666666668);
@@ -32,23 +32,23 @@ Deno.test("addValue - Should add value one by one and calculate stats", () => {
 });
 Deno.test("removeValue - Should remove value one by one", () => {
     const stats = new Stats(10);
-    stats.addValue(5);
-    stats.addValue(10);
-    stats.addValue(15);
-    stats.removeValue();
+    stats._addValue(5);
+    stats._addValue(10);
+    stats._addValue(15);
+    stats._removeValue();
 
     assertEquals(stats.count, 2);
     assertEquals(stats.avg, 12.5);
     assertEquals(stats.variance, 6.25);
     assertEquals(stats.last, 15);
 
-    stats.removeValue();
+    stats._removeValue();
     assertEquals(stats.count, 1);
     assertEquals(stats.avg, 15);
     assertEquals(stats.variance, 0);
     assertEquals(stats.last, 15);
 
-    stats.removeValue();
+    stats._removeValue();
     assertEquals(stats.count, 0);
     assertEquals(stats.avg, null);
     assertEquals(stats.variance, 0);

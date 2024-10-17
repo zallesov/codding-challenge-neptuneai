@@ -51,7 +51,7 @@ Server will return a meaningful error message if something is wrong.
 deno test
 ```
 
-# Manula test
+# Manual test
 
 To make a request for a batch 
 ```bash
@@ -67,14 +67,22 @@ deno run --allow-net ./integration/test_stats.ts BTCUSDT 2
 
 I'm maintaining a sliding window with calculated stats for each of the k `1<k<8`. Values for each k are also stored. For k=1 last 10 values, and for k=8 last 10^8 values. 
 This could be optimized further to only use up 10^8 values. 
-Every new value is added to the stats for this window for every k. The complexity of inserting a batch of m elements is O(m*k).
-When the window reaches its limit (10^k) the oldest is removed from it and the new one is added. The stats are recalculated first for the removed value and then for the new value. 
-Recalculation is done with O(1) complexity. It is not looping over the values.
 
-Except for min and max. In case min or max value is removed there is no way to find a new min/max value in O(1) time AND O(1) space complexity. 
-A separate sorted list will have to be maintained to complete it in O(1)
+Every new value is added to the memory for value of k. The complexity of inserting a batch of m elements is O(m*k).
 
+Average, Variance are with a sliding window technique.
+The stats are recalculated first for the removed value and then for the new value. 
+Recalculation for each value is done with O(1) complexity and O(m) for the batch. It is NOT looping over ALL N the values.
 
+Min and Max calculation is done once fore every batch. In order to calculate min/max in less than O(N) I maintain a AVL tree. Adding all the values of the batch will take
+O(m*log(n)) and finding min and max will take O(log(n)) once per batch. 
+
+Reeds a happening in O(1). All values are pre-calculated.
+
+Space complexity is O(N) or 2N to be exact. Values are stored twice for each symbol and each value of k. Once in a list and once in a tree.
+I could not find a solution with O(N) space AND O(log(N)) computation complexity. 
+
+ 
 
 
 

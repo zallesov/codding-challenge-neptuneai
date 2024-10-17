@@ -2,7 +2,7 @@
 const arg = Deno.args[1];
 const symbol = Deno.args[0];
 
-console.log("Launching test:", arg);
+console.log("/add_batch/ test:", arg);
 
 function batch(num: number) {
     console.log("Batching", num);

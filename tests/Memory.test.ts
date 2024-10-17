@@ -2,10 +2,22 @@ import { assertEquals, assertExists } from "@std/assert";
 import { Memory } from "../Memory.ts";
 import { Stats } from "../Stats.ts";
 
-Deno.test("Return Null if No Stats Available", () => {
-    const memory = new Memory(2);
+Deno.test("Return stats for a given k", () => {
+    const memory = new Memory(3);
     const stats = memory.getStats(1);
     assertEquals(stats, new Stats(10));
+
+    const stats2 = memory.getStats(2);
+    assertEquals(stats2, new Stats(100));
+
+    const stats3 = memory.getStats(3);
+    assertEquals(stats3, new Stats(1000));
+});
+
+Deno.test("Return Undefined for values over initial K", () => {
+    const memory = new Memory(2);
+    const stats = memory.getStats(3);
+    assertEquals(stats, undefined);
 });
 
 

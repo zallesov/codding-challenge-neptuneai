@@ -2,7 +2,7 @@
 const symbol = Deno.args[0];
 const k = Deno.args[1];
 
-console.log("Stats test:", symbol, k);
+console.log("/stats test:", symbol, k);
 
 function stats(k: number) {
     fetch(`http://localhost:8000/stats/${symbol}/${k}`, {

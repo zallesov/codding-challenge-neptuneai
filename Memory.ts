@@ -29,8 +29,8 @@ export class Memory {
 
     }
 
-    getStats(k: number): Stats | null {
+    getStats(k: number): Stats | undefined {
         const size = Math.pow(10, k)
-        return this.stats.get(size)!;
+        return this.stats.get(size);
     }
 }

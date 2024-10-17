@@ -1,97 +1,131 @@
+import { AVLTree } from "./AVLTree.ts";
 
+/**
+ * Class representing statistical measures of a dataset.
+ */
 export class Stats {
 
     constructor(private size: number) {
         this.size = size
     }
 
-    avg: number | null = null
-    varianceAgg: number | null = null
-    min: number | null = null
-    max: number | null = null
+    private _avg: number | null = null
+    private _varianceAgg: number | null = null
+    private _min: number | null = null
+    private _max: number | null = null
 
-    values: number[] = []
-    minMax: number[] = []
+    private _values: number[] = []
+    private _minMaxTree: AVLTree<number> = new AVLTree<number>()
 
+    /**
+     * Add multiple values to the stats and update the min-max tree.
+     * @param values - The values to add.
+     */
     addValues(values: number[]) {
 
-        const min = Math.min(...values)
-        const max = Math.max(...values)
 
         values.forEach(value => {
 
             if (this.count === this.size) {
-                this.removeValue()
+                this._removeValue()
             }
 
-            this.addValue(value)
+            this._addValue(value)
         })
 
-        console.log(this.values)
-        console.log(this.min)
-        console.log(min)
-        this.min = this.min == null || min <= this.min ? min : Math.min(...this.values) // O(n) 
-        this.max = this.max == null || max >= this.max ? max : Math.max(...this.values) // O(n)
+        // this.min = Math.min(...this.values) // O(n) 
+        // this.max = Math.max(...this.values) // O(n)
+
+        this._min = this._minMaxTree.findMin() // O(log n)
+        this._max = this._minMaxTree.findMax() // O(log n)
     }
 
-    addValue(value: number) {
-        this.values.push(value)
+    /**
+     * @private
+     * Add a value to the stats and update the min-max tree.
+     * @param value - The value to add.
+     */
+    _addValue(value: number) {
+        this._values.push(value)
+        this._minMaxTree.insertKey(value)
 
-        if (this.avg === null) {
-            this.avg = value;
-            this.varianceAgg = 0;
+        if (this._avg === null) {
+            this._avg = value;
+            this._varianceAgg = 0;
         } else {
-            const oldAvg = this.avg;
-            this.avg = oldAvg + (value - oldAvg) / this.count;
+            const oldAvg = this._avg;
+            this._avg = oldAvg + (value - oldAvg) / this.count;
 
             // Update the variance using Welford's method
             const diff = value - oldAvg;
-            this.varianceAgg = this.varianceAgg! + diff * (value - this.avg);
+            this._varianceAgg = this._varianceAgg! + diff * (value - this._avg);
         }
     }
 
-    removeValue() {
+    /**
+     * @private
+     * Remove a value from the stats and update the min-max tree.
+     */
+    _removeValue() {
         if (this.count === 0) return;
 
-        const removedValue = this.values.shift()!;
+        const removedValue = this._values.shift()!;
+        this._minMaxTree.removeKey(removedValue)
 
         if (this.count === 1) {
             // Reset everything if removing the last element
-            this.avg = this.min = this.max = this.last;
-            this.varianceAgg = 0;
+            this._avg = this._min = this._max = this.last;
+            this._varianceAgg = 0;
             return;
         }
 
         if (this.count === 0) {
-            this.avg = this.min = this.max = this.varianceAgg = null;
+            this._avg = this._min = this._max = this._varianceAgg = null;
             return;
         }
 
         // Recalculate avg (old avg restored with removed value)
-        const oldAvg = this.avg!;
-        this.avg = (oldAvg * (this.count + 1) - removedValue) / this.count;
+        const oldAvg = this._avg!;
+        this._avg = (oldAvg * (this.count + 1) - removedValue) / this.count;
 
         // Recalculate variance
         const diff = removedValue - oldAvg;
-        this.varianceAgg = this.varianceAgg! - diff * (removedValue - this.avg!);
+        this._varianceAgg = this._varianceAgg! - diff * (removedValue - this._avg!);
 
     }
 
     get variance(): number | null {
-        return this.varianceAgg && this.count > 1 ? this.varianceAgg / (this.count) : 0;
+        return this._varianceAgg && this.count > 1 ? this._varianceAgg / (this.count) : 0;
     }
 
     get count(): number {
-        return this.values.length;
+        return this._values.length;
     }
 
     get last(): number | null {
-        return this.values[this.values.length - 1] ?? null;
+        return this._values[this._values.length - 1] ?? null;
     }
+
+    get min(): number | null {
+        return this._min
+    }
+
+    get max(): number | null {
+        return this._max
+    }
+
+    get avg(): number | null {
+        return this._avg
+    }
+
+    get values(): number[] {
+        return this._values
+    }
+
 
     toJSON(): string {
         return JSON.stringify({
-            avg: this.avg,
+            avg: this._avg,
             variance: this.variance,
             min: this.min,
             max: this.max,
