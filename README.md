@@ -55,12 +55,12 @@ deno test
 
 To make a request for a batch 
 ```bash
-deno run --allow-net ./integration/test_addBatch.ts BTCUSDT 1000
+deno run --allow-net ./manual/test_addBatch.ts BTCUSDT 1000
 ```
 
 To make a request for stats
 ```bash
-deno run --allow-net ./integration/test_stats.ts BTCUSDT 2
+deno run --allow-net ./manual/test_stats.ts BTCUSDT 2
 ```
 
 # Algorithm
@@ -70,8 +70,7 @@ This could be optimized further to only use up 10^8 values.
 
 Every new value is added to the memory for value of k. The complexity of inserting a batch of m elements is O(m*k).
 
-Average, Variance are with a sliding window technique.
-The stats are recalculated first for the removed value and then for the new value. 
+Average, Variance are calculated with a sliding window technique.
 Recalculation for each value is done with O(1) complexity and O(m) for the batch. It is NOT looping over ALL N the values.
 
 Min and Max calculation is done once fore every batch. In order to calculate min/max in less than O(N) I maintain a AVL tree. Adding all the values of the batch will take
@@ -79,8 +78,11 @@ O(m*log(n)) and finding min and max will take O(log(n)) once per batch.
 
 Reeds a happening in O(1). All values are pre-calculated.
 
-Space complexity is O(N) or 2N to be exact. Values are stored twice for each symbol and each value of k. Once in a list and once in a tree.
-I could not find a solution with O(N) space AND O(log(N)) computation complexity. 
+Space complexity is 2N. Values are stored twice for each symbol and each value of k. Once in a list and once in a tree.
+I could not find a solution with O(N) space AND O(log(N)) computation complexity. It is either N space and 0(N) or 2N and O(log(N)).
+
+It there is such solution I need to know it.
+
 
  
 
